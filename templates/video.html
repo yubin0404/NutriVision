@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹캠 실시간 기록 | Food Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 변수 설정 (딥 그린/오렌지 테마) */
+        :root {
+            --primary-color: #2E7D32; /* 딥 그린 (메인 색상) */
+            --accent-color: #FFB300;  /* 라이트 오렌지 (강조 색상) */
+            --bg-light: #fcfcfc;      /* 깨끗한 배경 */
+            --text-dark: #333;
+            --text-light: #555;
+            --shadow-subtle: 0 6px 15px rgba(0, 0, 0, 0.08);
+            --font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        /* 기본 설정 및 레이아웃 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            height: 100vh;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            font-family: var(--font-family);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        /* 헤더 (페이지 제목 대체) */
+        header {
+            background-color: white;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        header h1 { 
+            color: var(--primary-color); 
+            font-weight: 700; 
+            font-size: 2em; 
+        }
+        
+        /* 설명 텍스트 */
+        .instruction-text {
+            color: var(--text-light);
+            margin-bottom: 30px;
+            font-size: 1.0em;
+            font-weight: 500;
+        }
+
+        /* 비디오 컨테이너 */
+        .video-container {
+            border: 5px solid var(--primary-color); /* 딥 그린 테두리로 강조 */
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* 그림자 강화 */
+            cursor: pointer; /* 클릭 가능함을 시각적으로 암시 */
+            max-width: 100%;
+            background-color: black;
+            transition: box-shadow 0.3s;
+        }
+        .video-container:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .video-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* 버튼 컨테이너 */
+        .button-container {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 300px; /* 버튼 너비 제한 */
+        }
+
+        /* 링크/버튼 스타일 */
+        .btn-link {
+            display: block;
+            width: 100%;
+            padding: 15px 24px;
+            background-color: var(--accent-color); /* 오렌지색 버튼 */
+            color: var(--text-dark);
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1.1em;
+        }
+
+        .btn-link:hover {
+            background-color: #ff9800;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* 기존 <h1>과 <p>는 CSS로 대체하거나 숨김 */
+        body > h1, body > p { display: none; } 
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📸 웹캠 실시간 기록</h1>
+        <p>화면을 **클릭**하거나 키보드의 **C 키**를 눌러 순간을 포착하고 분석을 시작하세요.</p>
+    </header>
+    
+    
+
+    <div class="video-container">
+        <img id="videoFeed" src="{{ url_for('video_feed') }}" width="640" height="480" alt="실시간 웹캠 피드">
+    </div>
+
+    <div class="button-container">
+        <a href="{{ url_for('index') }}" class="btn-link">🏠 메인으로 돌아가기</a>
+    </div>
+
+    <script>
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'c' || event.key === 'C') {
+                captureImage();
+            }
+        });
+
+        document.getElementById('videoFeed').addEventListener('click', function() {
+            captureImage();
+        });
+
+        function captureImage() {
+            fetch('{{ url_for("capture_and_process") }}', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Python 서버에서 전달받은 리디렉션 URL로 이동
+                        window.location.href = data.redirect_url;
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('이미지 캡처 중 오류가 발생했습니다.');
+                });
+        }
+    </script>
+</body>
+</html>

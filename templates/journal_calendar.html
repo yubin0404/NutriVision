@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>기록 일지 | My Journal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A clean and modern aesthetic, by a 50-year FE dev */
+        /* === 🎨 딥 그린/오렌지 테마 CSS로 전체 교체 === */
+        :root {
+            --color-primary: #2E7D32; /* 딥 그린 (메인 색상) */
+            --color-accent: #FFB300;  /* 라이트 오렌지 (강조 색상) */
+            --color-bg-primary: #fcfcfc; /* 깨끗한 배경 */
+            --color-bg-secondary: #ffffff; /* 컨테이너 배경 */
+            --color-text-dark: #333333;
+            --color-text-light: #555555;
+            --color-border: #e0e0e0;
+            --color-danger: #d9534f;
+            --font-family: 'Noto Sans KR', sans-serif;
+            --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-dark);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .calorie-summary {
+            text-align: left;
+            margin-bottom: 25px; /* 달력과의 간격 */
+            padding: 15px 20px;
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            background-color: var(--color-bg-secondary);
+            box-shadow: var(--shadow-subtle);
+        }
+        .calorie-summary h2 {
+            color: var(--color-primary);
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .summary-box p {
+            font-size: 1em;
+            line-height: 1.8;
+        }
+        .summary-box strong {
+            color: var(--color-text-dark);
+        }
+
+        /* 잔여 칼로리 (Remaining Calories) 기본 스타일 정의 */
+        .remaining strong {
+            /* 기본 색상은 초과하지 않았을 때의 색상(primary)으로 지정 */
+            color: var(--color-primary); 
+            font-size: 1.1em;
+        }
+
+        /* ⬇️ 잔여 칼로리가 초과되었을 때 (음수일 때) 적용될 클래스 */
+        .calorie-exceeded {
+            /* --color-danger 변수에 정의된 빨간색을 사용 */
+            color: var(--color-danger) !important; 
+        }
+                
+        .calendar-container {
+            max-width: 950px;
+            width: 100%;
+            margin: 0 auto;
+            background-color: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--color-primary); /* 딥 그린 제목 */
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--color-accent); /* 오렌지색 밑줄 */
+            padding-bottom: 10px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--color-primary); /* 딥 그린 월 헤더 */
+            margin-bottom: 20px;
+        }
+
+        .month-header a {
+            color: var(--color-accent); /* 오렌지색 링크 */
+            text-decoration: none;
+            font-size: 0.8em;
+            transition: color 0.2s;
+        }
+        .month-header a:hover {
+            color: #ffa000;
+        }
+        
+        .days-of-week {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: bold;
+            color: var(--color-text-dark);
+            background-color: #f0f0f0;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 8px;
+            border-radius: 6px 6px 0 0;
+        }
+
+        /* 주말 색상 강조 */
+        .days-of-week span:first-child { color: var(--color-danger); } /* 일요일 */
+        .days-of-week span:last-child { color: var(--color-primary); } /* 토요일 */
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        
+        .day-box {
+            position: relative;
+            height: 120px;
+            background-color: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .day-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            border-color: var(--color-primary); /* 호버 시 딥 그린 테두리 */
+        }
+        
+        .day-number {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--color-text-dark);
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 4px;
+            padding: 1px 5px;
+        }
+        
+        .day-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .day-box:hover .day-image {
+            opacity: 1.0;
+        }
+        
+        .day-box.empty {
+            background-color: #f0f0f0;
+            cursor: default;
+        }
+        
+        .day-box.empty:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: var(--color-border);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: var(--color-danger);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 3px 6px;
+            font-size: 0.8em;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 3;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .day-box:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .main-btn {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            padding: 15px 30px;
+            background-color: var(--color-primary); /* 딥 그린 버튼 */
+            color: #ffffff;
+            font-weight: bold;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .main-btn:hover {
+            background-color: #1b5e20; /* 진한 녹색 호버 */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+    <div class="calorie-summary">
+        <h2>오늘의 칼로리 목표</h2>
+        <div class="summary-box">
+            <p>기초대사량 (BMR): <strong>{{ user_bmr | int }} kcal</strong></p>
+        
+            <p class="remaining">
+                잔여 칼로리: 
+                <strong class="{% if remaining_calories is defined and remaining_calories is not none and remaining_calories < 0 %}calorie-exceeded{% endif %}">
+                    {% if remaining_calories is none %}
+                        N/A (BMR 정보 없음)
+                    {% else %}
+                        {{ remaining_calories | int }} kcal
+                    {% endif %}
+                </strong>
+            </p>
+        </div>
+    </div>
+
+        <h1>나의 음식 기록 일지</h1>
+        <div class="month-header">
+            <a href="{{ url_for('journal_calendar', year=prev_year, month=prev_month) }}" style="text-decoration: none;">&lt; 이전 달</a>
+            <span>{{ year }}년 {{ month }}월</span>
+            <a href="{{ url_for('journal_calendar', year=next_year, month=next_month) }}" style="text-decoration: none;">다음 달 &gt;</a>
+        </div>
+        <div class="days-of-week">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="calendar-grid">
+            </div>
+    </div>
+    
+    <div style="text-align: center;">
+        <a href="{{ url_for('index') }}" class="main-btn">메인으로 돌아가기</a>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... (기존 변수 설정 로직 유지)
+        const year = {{ year }};
+        const month = {{ month }} - 1; 
+        
+        const firstDay = new Date(year, month, 1);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const startDay = firstDay.getDay(); 
+        
+        const calendarGrid = document.querySelector('.calendar-grid');
+        const journalData = {{ journal_data | tojson }};
+
+        // 빈 박스 추가
+        for (let i = 0; i < startDay; i++) {
+            const emptyBox = document.createElement('div');
+            emptyBox.className = 'day-box empty';
+            calendarGrid.appendChild(emptyBox);
+        }
+        
+        // 날짜 박스 추가
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const dailyRecord = journalData[dateStr]; // { entries: [...] } 형태의 일일 기록 데이터
+            
+            // **가장 최근 기록 (리스트의 첫 번째 항목)을 가져옵니다.**
+            const latestEntry = (dailyRecord && dailyRecord.entries && dailyRecord.entries.length > 0)
+                                ? dailyRecord.entries[0]
+                                : null;
+
+            const dayBox = document.createElement('a');
+            dayBox.className = 'day-box';
+            dayBox.href = `{{ url_for('journal_entry', date_str='DATE_PLACEHOLDER') }}`.replace('DATE_PLACEHOLDER', dateStr);
+            
+            dayBox.innerHTML = `<span class="day-number">${i}</span>`;
+            
+            // **가장 최근 기록에 이미지가 있는 경우**
+            if (latestEntry && latestEntry.image) {
+                const img = document.createElement('img');
+                img.src = `{{ url_for('static', filename='') }}${latestEntry.image}`;
+                img.alt = '가장 최근 기록 사진';
+                img.className = 'day-image';
+                dayBox.appendChild(img);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '삭제'; 
+                deleteBtn.onclick = function(e) {
+                    e.preventDefault();
+                    if (confirm('이 날짜의 모든 기록을 정말 삭제하시겠습니까?')) {
+                        fetch(`/delete_journal_entry/${dateStr}`, {
+                            method: 'POST'
+                        }).then(response => response.json())
+                          .then(data => {
+                              if (data.success) {
+                                  window.location.reload();
+                              } else {
+                                  alert('삭제 실패');
+                              }
+                          });
+                    }
+                };
+                dayBox.appendChild(deleteBtn);
+            }
+            
+            calendarGrid.appendChild(dayBox);
+        }
+    });
+</script>
+    </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>음식 분석 결과 | 영양성분</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS 스타일은 이전과 동일하게 유지됩니다. */
+        :root {
+            --primary-color: #2E7D32;
+            --accent-color: #FFB300;
+            --bg-light: #fcfcfc;
+            --text-dark: #333;
+            --text-light: #555;
+            --shadow-subtle: 0 6px 15px rgba(0, 0, 0, 0.08);
+            --font-family: 'Noto Sans KR', sans-serif;
+            --danger-color: #d9534f;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            font-family: var(--font-family);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        header {
+            background-color: white;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+        }
+        header h1 { 
+            color: var(--primary-color); 
+            font-weight: 700; 
+            font-size: 2em; 
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            box-shadow: var(--shadow-subtle);
+            padding: 30px;
+        }
+        .image-container {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 20px;
+        }
+        .image-container img {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 5px solid var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .food-entry {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #eee;
+        }
+        .food-entry:last-of-type { border-bottom: none; margin-bottom: 0; }
+        h2 {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 14px 16px;
+            border: none;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: left;
+            font-size: 0.95em;
+        }
+        th {
+            background-color: #f7f7f7;
+            color: var(--text-dark);
+            font-weight: 700;
+            width: 35%;
+        }
+        td { color: var(--text-light); }
+        .not-found {
+            color: var(--danger-color);
+            text-align: center;
+            padding: 15px;
+            background-color: #fffaf7;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px dashed var(--danger-color);
+            font-weight: 500;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .btn-primary, .btn-secondary {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 700;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover { background-color: #1b5e20; }
+        .btn-secondary { 
+            background-color: var(--accent-color); 
+            color: var(--text-dark); 
+        }
+        .btn-secondary:hover { background-color: #ff9800; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>분석 상세 결과 📋</h1>
+    </header>
+    
+    <div class="container">
+        <div class="image-container">
+            <img src="{{ url_for('static', filename=result_image) }}" alt="결과 이미지">
+        </div>
+
+        {% for food in results %}
+        <div class="food-entry">
+            <h2>{{ food.name }}</h2>
+            {% if food.info %}
+            <table>
+                <tbody>
+                    <tr style="background-color: #e8f5e9;">
+                        <th>섭취량</th>
+                        <td>{{ food.info.quantity | int }} {{ food.info.unit }}</td>
+                    </tr>
+                    {% set display_order = [
+                        ('kcal', 'Kcal'), ('탄수화물(g)', 'g'), ('단백질(g)', 'g'), ('지방(g)', 'g'), 
+                        ('당류(g)', 'g'), ('나트륨(mg)', 'mg')
+                    ] %}
+                    
+                    {% for key, unit in display_order %}
+                        {% if key in food.info and food.info[key] is not none %}
+                        <tr>
+                            <th>{{ key.split('(')[0] }}</th>
+                            <td>{{ food.info[key] | int }} {{ unit }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% for i in range(1, 4) %}
+                        {% set key = '추천' + i|string %}
+                        {% if key in food.info and food.info[key] %}
+                        <tr>
+                            <th>{{ key }}</th>
+                            <td>{{ food.info[key] }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="not-found">⚠ "{{ food.name }}"에 대한 정보가 없습니다.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="button-group">
+            <a href="{{ url_for('journal_entry', date_str=today_date) }}" class="btn-primary">🗓️ 기록 일지에 추가하기</a>
+            <a href="{{ url_for('discard_results_and_go_home') }}" class="btn-secondary">🏠 메인으로 돌아가기</a>
+        </div>
+    </div>
+</body>
+</html>

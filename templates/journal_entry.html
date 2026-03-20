@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ date }} 기록</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 변수 설정 (딥 그린/오렌지 테마) */
+        :root {
+            --primary-color: #2E7D32; /* 딥 그린 (메인 색상) */
+            --accent-color: #FFB300;  /* 라이트 오렌지 (강조 색상) */
+            --bg-light: #fcfcfc;      /* 깨끗한 배경 */
+            --text-dark: #333;
+            --text-light: #555;
+            --shadow-subtle: 0 8px 20px rgba(0, 0, 0, 0.1);
+            --font-family: 'Noto Sans KR', sans-serif;
+            --danger-color: #d9534f;
+        }
+        
+        /* 기본 설정 및 레이아웃 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* 컨테이너 */
+        .entry-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            background-color: white; /* 배경색 변경 */
+            border: 1px solid #eee;
+            border-radius: 15px;
+            box-shadow: var(--shadow-subtle);
+            padding: 30px;
+        }
+        
+        /* 헤더 */
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--accent-color); /* 오렌지색 강조 */
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .entry-header h2 {
+            font-size: 2.0em;
+            font-weight: 700;
+            color: var(--primary-color); /* 딥 그린 제목 */
+            margin: 0;
+        }
+
+        /* 서브 헤더 (탐지된 음식 정보) */
+        h3 {
+            font-size: 1.5em;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            border-left: 5px solid var(--accent-color);
+            padding-left: 10px;
+        }
+
+        h4 {
+            font-size: 1.2em;
+            color: var(--primary-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        /* 이미지 미리보기 */
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 10px;
+            border: 2px solid var(--primary-color); /* 딥 그린 테두리 */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 텍스트 영역 */
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 1em;
+            box-sizing: border-box;
+            resize: vertical;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+        }
+        
+        /* 버튼 공통 스타일 */
+        button, a.btn { /* a 태그에도 버튼 스타일 적용을 위해 클래스 추가 */
+            padding: 12px 24px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: inline-block; /* a 태그 버튼 정렬 */
+        }
+        
+        /* 저장 버튼 */
+        .save-btn {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+        
+        .save-btn:hover {
+            background-color: #1b5e20;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            background-color: var(--text-light); /* 회색 버튼 */
+            color: #ffffff;
+            margin-left: 10px;
+        }
+        
+        .back-btn:hover {
+            background-color: #444;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 버튼 그룹 */
+        .button-group {
+            text-align: right;
+            margin-top: 30px;
+        }
+        
+        /* 테이블 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #f0f0f0; /* 더 얇고 밝은 테두리 */
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        th {
+            background-color: #f5f5f5; /* 연한 배경 */
+            color: var(--text-light);
+            font-weight: 700;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        /* 파일 선택 레이블 */
+        label[for="file"] {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-top: 15px;
+        }
+        
+        /* 경고 텍스트 */
+        p {
+            font-size: 0.9em;
+            color: var(--danger-color);
+            padding: 5px;
+            border-left: 3px solid var(--danger-color);
+            background-color: #fff5f5;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="entry-container">
+        <div class="entry-header">
+            <h2>{{ date }} 기록</h2>
+            {% if temp_entry %}
+                <a href="{{ url_for('discard_entry_and_go_back') }}" class="back-btn btn">이전 분석 버리고 뒤로 가기</a>
+            {% else %}
+                <a href="{{ url_for('journal_calendar') }}" class="back-btn btn">기록 일지로 돌아가기</a>
+            {% endif %}
+        </div>
+        
+        <div class="new-entry-form-container" style="border: 2px dashed #ddd; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+            <h3 style="color: var(--primary-color); border-left-color: var(--primary-color); margin-top: 0;">➕ 새로운 기록 추가</h3>
+
+            <form action="{{ url_for('save_journal_entry') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="date" value="{{ date }}">
+                
+                {% if temp_entry %}
+                    <p style="color: var(--color-primary); background-color: #e8f5e9;">✅ **분석이 완료된 임시 기록**입니다. 메모 후 저장 버튼을 누르세요.</p>
+                    <img src="{{ url_for('static', filename=temp_entry.image) }}" alt="새로운 기록 사진" class="image-preview" id="image-preview" style="border-color: var(--accent-color);">
+                    {% set current_entry = temp_entry %}
+                {% else %}
+                    <label for="file">📸 사진 첨부 / 분석:</label>
+                    <input type="file" name="file" id="file" accept="image/*" onchange="previewFile()">
+                    <img id="image-preview" class="image-preview" style="display:none;" src="#" alt="선택한 이미지 미리보기">
+                    {% set current_entry = {'content': '', 'results': []} %}
+                {% endif %}
+
+                {% if current_entry.results %}
+                <div style="margin-top: 30px;">
+                    <h4>🔍 탐지된 음식 분석 정보</h4>
+                    {% for food in current_entry.results %}
+                    <div class="food-entry">
+                        <h5>- {{ food.name }}</h5>
+                        {% if food.info %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>내용</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set display_order = [
+                                    'kcal', '탄수화물(g)', '단백질(g)', '지방(g)', 
+                                    '당류(g)', '나트륨(mg)', '추천1', '추천2', '추천3'
+                                ] %}
+
+                                <tr>
+                                    <th>음식</th>
+                                    <td>{{ food.name }} ({{ food.info.quantity | int }} {{ food.info.unit }})</td>
+                                </tr>
+                    
+                                {% for key in display_order %}
+                                    {% if key in food.info and food.info[key] %}
+                                        <tr>
+                                            <th>{{ key }}</th>
+                                            {# '추천'이나 '기준' 항목은 글자이므로 int 필터 없이 그대로 표시 #}
+                                            {% if '추천' in key %}
+                                                <td>{{ food.info[key] }}</td>
+                                            {# 나머지 숫자 항목에만 int 필터를 적용하여 소수점 제거 #}
+                                            {% else %}
+                                                <td>{{ food.info[key] | int }}</td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p>⚠ "{{ food.name }}"에 대한 상세 정보가 없습니다.</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            
+                <label for="content" style="margin-top: 20px;">✍️ 기록 내용:</label>
+                <textarea name="content" id="content" placeholder="이 식사에 대한 메모를 남겨주세요.">{{ current_entry.content }}</textarea>
+                
+                <div class="button-group">
+                    <button type="submit" class="save-btn">저장하고 새로운 기록 추가</button>
+                </div>
+            </form>
+            <hr style="margin: 40px 0; border: 0; border-top: 1px dashed #ccc;">
+        </div>
+
+
+        <h3 style="color: var(--text-dark); border-left-color: var(--accent-color); margin-top: 0;">📜 저장된 기록 목록 (총 {{ daily_entries | length }}개)</h3>
+
+        {% if daily_entries %}
+            {% for entry in daily_entries %}
+            <div class="saved-entry" style="border: 1px solid #ddd; padding: 20px; border-radius: 10px; margin-bottom: 20px;" id="entry-{{ entry.id }}">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; margin-top: 0;">
+                        📝 {{ entry.timestamp.split(' ')[1][:5] }} 기록
+                    </h4>
+                    <button class="delete-entry-btn" 
+                            data-date="{{ date }}" 
+                            data-id="{{ entry.id }}"
+                            style="background-color: var(--danger-color); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                        기록 삭제
+                    </button>
+                </div>
+                
+                {% if entry.image %}
+                    <img src="{{ url_for('static', filename=entry.image) }}" alt="기록 사진" class="image-preview" style="margin-top: 15px;">
+                {% endif %}
+
+                {% if entry.results %}
+            <div style="margin-top: 30px;">
+                <h3>🔍 탐지된 음식 분석 정보</h3>
+                {% for food in entry.results %}
+                <div class="food-entry">
+                    <h4>{{ food.name }}</h4>
+                    {% if food.info %}
+                    <table>
+                            <thead>
+                                <tr>
+                                    <th>항목</th>
+                                    <th>내용</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set display_order = [
+                                    'kcal', '탄수화물(g)', '단백질(g)', '지방(g)', 
+                                    '당류(g)', '나트륨(mg)', '추천1', '추천2', '추천3'
+                                ] %}
+
+                                <tr>
+                                    <th>음식</th>
+                                    <td>{{ food.name }} ({{ food.info.quantity | int }} {{ food.info.unit }})</td>
+                                </tr>
+                    
+                                {% for key in display_order %}
+                                    {% if key in food.info and food.info[key] %}
+                                    <tr>
+                                        <th>{{ key }}</th>
+                                        {# '추천'이나 '기준' 항목은 글자이므로 int 필터 없이 그대로 표시 #}
+                                        {% if '추천' in key %}
+                                            <td>{{ food.info[key] }}</td>
+                                        {# 나머지 숫자 항목에만 int 필터를 적용하여 소수점 제거 #}
+                                        {% else %}
+                                            <td>{{ food.info[key] | int }}</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                    <p>⚠ "{{ food.name }}"에 대한 상세 정보가 없습니다. 수동으로 입력해 주세요.</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+                
+                <h4 style="margin-top: 20px;">✍️ 기록 내용:</h4>
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                    {{ entry.content | default('내용 없음', true) }}
+                </div>
+            </div>
+            {% endfor %}
+
+        {% else %}
+            {% if not temp_entry %}
+            <p>이 날짜에 저장된 기록이 없습니다. 사진을 업로드하여 첫 번째 기록을 추가해 보세요.</p>
+            {% endif %}
+        {% endif %}
+        
+    </div>
+
+
+    <script>
+        // 파일 미리보기 기능 (직접 업로드 시)
+        function previewFile() {
+            const preview = document.getElementById('image-preview');
+            const file = document.getElementById('file').files[0];
+            const reader = new FileReader();
+
+            reader.onloadend = function () {
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            }
+
+            if (file) {
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "";
+                preview.style.display = 'none';
+            }
+        }
+
+        // 개별 기록 삭제 기능
+        document.querySelectorAll('.delete-entry-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const dateStr = this.getAttribute('data-date');
+                const entryId = this.getAttribute('data-id');
+
+                if (confirm('이 기록(사진 및 분석 결과)을 정말 삭제하시겠습니까?')) {
+                    // Flask의 새로운 삭제 라우트로 POST 요청 전송
+                    fetch(`/delete_journal_entry/${dateStr}/${entryId}`, {
+                        method: 'POST'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('기록이 성공적으로 삭제되었습니다.');
+                              window.location.reload(); // 페이지 새로고침
+                          } else {
+                              alert('삭제 실패: ' + data.message);
+                          }
+                      }).catch(error => {
+                          console.error('삭제 중 오류 발생:', error);
+                          alert('삭제 처리 중 네트워크 오류가 발생했습니다.');
+                      });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

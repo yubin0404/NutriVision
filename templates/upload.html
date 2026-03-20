@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriVision | 이미지 업로드 및 기록</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 변수 설정 (딥 그린/오렌지 테마) */
+        :root {
+            --primary-color: #2E7D32; /* 딥 그린 (메인 색상) */
+            --accent-color: #FFB300;  /* 라이트 오렌지 (강조 색상) */
+            --bg-light: #fcfcfc;      /* 깨끗한 배경 */
+            --text-dark: #333;
+            --text-light: #777;
+            --shadow-subtle: 0 6px 15px rgba(0, 0, 0, 0.08);
+            --font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        /* 기본 설정 및 레이아웃 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            font-family: var(--font-family);
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* 헤더 */
+        header {
+            background-color: white;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 1000px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+        }
+        header h1 { color: var(--primary-color); font-weight: 700; margin-bottom: 5px; font-size: 1.8em; }
+        header p { color: #666; font-size: 0.9em; }
+
+
+        /* 메인 콘텐츠 컨테이너 (업로드/웹캠 + 기록을 담는 전체 영역) */
+        .container-main {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 1000px;
+            align-items: flex-start;
+        }
+        
+        /* 중앙에 배치될 "음식 분석 옵션" 그룹 */
+        .center-options {
+            flex: 3; /* 더 넓은 공간을 차지 (왼쪽 70% 정도) */
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap; 
+            justify-content: center; /* 중앙에 배치 */
+            padding-right: 15px; /* 기록 섹션과 간격 */
+        }
+
+        /* 중앙 옵션 박스 (업로드, 웹캠) */
+        .section-option {
+            background: white; 
+            padding: 30px;
+            border-radius: 15px; 
+            box-shadow: var(--shadow-subtle);
+            flex: 1 1 350px; /* 두 개의 박스가 나란히 있도록 설정 */
+            text-align: center;
+        }
+
+        /* 최근 기록 섹션 (사이드바) */
+        .section-history {
+            flex: 1; /* 더 좁은 공간을 차지 (오른쪽 30% 정도) */
+            background: white; 
+            padding: 25px;
+            border-radius: 15px; 
+            box-shadow: var(--shadow-subtle);
+            min-width: 250px; /* 최소 너비 확보 */
+        }
+        
+        /* 섹션 헤더 */
+        .section-header {
+            font-size: 1.5em; /* 기록 섹션은 살짝 줄임 */
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 10px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .section-option .section-header {
+            font-size: 1.8em;
+        }
+
+        /* 업로드 폼 및 버튼 */
+        .upload-form {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] { display: none; }
+
+        .custom-file-upload {
+            border: 3px dashed var(--accent-color);
+            background-color: #fffaf0; 
+            display: inline-block;
+            padding: 30px 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+        }
+        .custom-file-upload:hover {
+            border-color: var(--primary-color);
+            background-color: #f0fdf0;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 700;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #1b5e20;
+        }
+        
+        /* 기록 일지 링크 (하단 중앙 배치) */
+        .journal-link-bottom {
+            width: 100%;
+            text-align: center;
+            margin-top: 40px; /* 메인 컨테이너와 간격 */
+        }
+        .journal-link-bottom a {
+            display: inline-block; /* 중앙 정렬을 위해 inline-block 사용 */
+            background-color: var(--accent-color);
+            color: var(--text-dark);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .journal-link-bottom a:hover {
+            background-color: #ff9800;
+        }
+        
+        /* 최근 기록 목록 스타일 */
+        .food-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            text-align: left;
+        }
+        .food-list li {
+            background-color: var(--bg-light);
+            border: 1px solid #ddd;
+            padding: 12px 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: var(--text-dark);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* 이미지 미리보기 */
+        .image-preview {
+            /* 핵심: 페이지 로드 시에는 미리보기 영역을 완전히 숨김 */
+            display: none; 
+            
+            /* 자바스크립트에 의해 보이게 될 때 가운데 정렬을 유지 */
+            margin-left: auto;
+            margin-right: auto;
+            
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+        /* 모바일 반응형: 모든 섹션을 세로로 쌓기 */
+        @media (max-width: 850px) {
+            .container-main { flex-direction: column; gap: 40px; }
+            .center-options { flex-direction: column; padding-right: 0; }
+            .section-history { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>NutriVision 🌿</h1>
+        <p>음식 이미지를 업로드하거나 웹캠으로 실시간 분석을 시작하세요.</p>
+    </header>
+
+    <div class="container-main">
+        <div class="center-options">
+            
+            <div class="section-option">
+                <h1 class="section-header">📁 음식 이미지 업로드</h1>
+                <div class="upload-form">
+                    <form action="/upload" method="post" enctype="multipart/form-data">
+                        <img id="image-preview" class="image-preview" src="#" alt="선택한 이미지 미리보기">
+                        <label for="file-upload" class="custom-file-upload">
+                            **클릭하여 음식 이미지 선택**
+                        </label>
+                        <input type="file" name="file" id="file-upload" accept="image/*" required onchange="previewFile()">
+                        <button type="submit">업로드 & 분석 시작</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="section-option">
+                <h1 class="section-header">📸 웹캠으로 실시간 분석</h1>
+                <p style="color: var(--text-light); margin-bottom: 40px;">실시간으로 음식을 촬영하고 즉시 분석합니다.</p>
+                <div class="upload-form">
+                    <form action="{{ url_for('video') }}" method="GET">
+                        <button type="submit" style="margin-top: 50px;">웹캠 기록 페이지로 이동</button>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="section-history">
+            <h1 class="section-header">최근 분석 기록</h1>
+            <ul class="food-list">
+                {% if recent_foods %}
+                    {% for food in recent_foods %}
+                        <li>{{ food }}</li>
+                    {% endfor %}
+                {% else %}
+                    <li>아직 기록이 없습니다.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="journal-link-bottom">
+        <a href="{{ url_for('journal_calendar') }}">🗓️ 전체 기록 일지 보기</a>
+    </div>
+    
+    <script>
+        function previewFile() {
+            const preview = document.getElementById('image-preview');
+            const file = document.getElementById('file-upload').files[0];
+            const reader = new FileReader();
+            // 새로 추가된 부분: 파일 선택 레이블
+            const uploadLabel = document.querySelector('.custom-file-upload'); 
+            
+            reader.onloadend = function () {
+                preview.src = reader.result;
+                preview.style.display = 'block';
+                // 파일이 로드되면 레이블 숨기기
+                uploadLabel.style.display = 'none'; 
+            }
+            
+            if (file) {
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "";
+                preview.style.display = 'none';
+                // 파일이 없으면 레이블 다시 표시
+                uploadLabel.style.display = 'inline-block'; 
+            }
+        }
+    </script>
+</body>
+</html>
